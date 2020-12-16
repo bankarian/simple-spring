@@ -1,7 +1,7 @@
 package com.beney.framework;
 
-import com.beney.framework.annotations.*;
 import com.beney.framework.constants.ScopeType;
+import com.beney.framework.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -86,8 +86,8 @@ public class AnnotationConfigApplicationContext {
         if (configClass.isAnnotationPresent(ComponentScan.class)) {
             // 获取配置类的注解，所有注解实际上都实现了 Annotation 接口，所以可强制转换
             ComponentScan annotation = (ComponentScan) configClass.getAnnotation(ComponentScan.class);
-            // 获得包路径 com.beney.service （java源码路径）
-            // 但实际需要在文件系统中找到该文件夹，所以要变成 com/beney/service
+            // 获得包路径 com.com.beney.service （java源码路径）
+            // 但实际需要在文件系统中找到该文件夹，所以要变成 com/com.beney/service
             String path = annotation.value().replace('.', '/');
             // 扫描（扫描哪个? .class? .java）扫描的是class文件！，运行时是使用编译之后的class文件
             // 创建bean，实际上是加载class
@@ -121,11 +121,7 @@ public class AnnotationConfigApplicationContext {
                                 definition.setScope(ScopeType.SINGLETON);
                             }
 
-                            if (clazz.isAnnotationPresent(Lazy.class)) {
-                                definition.setLazy(true);
-                            } else {
-                                definition.setLazy(false);
-                            }
+                            definition.setLazy(clazz.isAnnotationPresent(Lazy.class));
 
                             beanDefinitionMap.put(beanName, definition);
                         }
