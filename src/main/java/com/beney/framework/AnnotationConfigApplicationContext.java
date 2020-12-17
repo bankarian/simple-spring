@@ -24,12 +24,12 @@ public class AnnotationConfigApplicationContext {
     public AnnotationConfigApplicationContext(Class configClass) {
         this.configClass = configClass;
         // 扫描 ---> BeanDefinition
-        scan(configClass);
+        scanParse(configClass);
 
-        instNonLazySingleton();
+        instantiateNonLazySingleton();
     }
 
-    private void instNonLazySingleton() {
+    private void instantiateNonLazySingleton() {
         for (String beanName : beanDefinitionMap.keySet()) {
             BeanDefinition definition = beanDefinitionMap.get(beanName);
             if (definition.getScope().equals(ScopeType.SINGLETON) && !definition.getLazy()) {
@@ -81,7 +81,7 @@ public class AnnotationConfigApplicationContext {
         return null;
     }
 
-    private void scan(Class configClass) {
+    private void scanParse(Class configClass) {
         // 获取包路径
         if (configClass.isAnnotationPresent(ComponentScan.class)) {
             // 获取配置类的注解，所有注解实际上都实现了 Annotation 接口，所以可强制转换
