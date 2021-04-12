@@ -17,7 +17,7 @@ public class AnnotationConfigApplicationContext {
     // 单例池，方便获取单例
     private Map<String, Object> singletonMap = new ConcurrentHashMap<>();
 
-    // 定义记录，方便创建prototype
+    // 记录 bean 的配置，方便创建prototype
     private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
 
 
@@ -29,6 +29,8 @@ public class AnnotationConfigApplicationContext {
         instantiateNonLazySingleton();
     }
 
+    // 从 beanDefinitionMap 获取 bean 的配置信息
+    // 将非懒加载的 bean 创建并放入单例池 singletonMap
     private void instantiateNonLazySingleton() {
         for (String beanName : beanDefinitionMap.keySet()) {
             BeanDefinition definition = beanDefinitionMap.get(beanName);
@@ -37,6 +39,13 @@ public class AnnotationConfigApplicationContext {
                 addSingletonBean(beanName, definition);
             }
         }
+    }
+
+    private Object addSingletonBean(String beanName, BeanDefinition definition) {
+        Object bean;
+        bean = createBean(beanName, definition);
+        singletonMap.put(beanName, bean);
+        return bean;
     }
 
     private Object createBean(String beanName, BeanDefinition definition) {
@@ -57,10 +66,11 @@ public class AnnotationConfigApplicationContext {
                 }
             }
 
-            // 3. 接口服务
+            // 3. 初始化，接口服务 (aware)
             if (instance instanceof BeanNameAware) {
                 ((BeanNameAware) instance).setBeanName(beanName);
             }
+            
             if (instance instanceof InitializingBean) {
                 ((InitializingBean) instance).afterPropertiesSet();
             }
@@ -81,6 +91,8 @@ public class AnnotationConfigApplicationContext {
         return null;
     }
 
+    // 扫描类文件，获取所有 bean 的配置信息
+    // 将配置信息都保存到 beanDefinitionMap 
     private void scanParse(Class configClass) {
         // 获取包路径
         if (configClass.isAnnotationPresent(ComponentScan.class)) {
@@ -101,6 +113,7 @@ public class AnnotationConfigApplicationContext {
 
                 for (File f : file.listFiles()) {
                     p = f.getAbsolutePath();
+                    // 获取完整的类名 包+类名
                     p = p.substring(p.indexOf(path.replace('/', '\\')), p.indexOf(".class"))
                             .replace('\\', '.');
                     try {
@@ -146,13 +159,6 @@ public class AnnotationConfigApplicationContext {
                 bean = addSingletonBean(beanName, definition);
             }
         }
-        return bean;
-    }
-
-    private Object addSingletonBean(String beanName, BeanDefinition definition) {
-        Object bean;
-        bean = createBean(beanName, definition);
-        singletonMap.put(beanName, bean);
         return bean;
     }
 }
